@@ -1,0 +1,14 @@
+Source: zfs-killsnaps
+Section: admin
+Priority: optional
+Maintainer: Michael Bielicki <maintainer@example.com>
+Build-Depends: debhelper (>= 11), python3, python3-yaml
+Standards-Version: 4.5.0
+Homepage: https://github.com/holstein-it/zfs-killsnaps
+
+Package: zfs-killsnaps
+Architecture: all
+Depends: ${misc:Depends}, python3, python3-yaml, zfsutils-linux, mailutils
+Description: ZFS snapshot cleanup utility
+ A flexible and safe tool for cleaning up ZFS snapshots based on pattern, age, and policy.
+ Supports dry-run, logging, cron safety, and email notifications.

@@ -1,0 +1,26 @@
+#!/bin/sh
+set -e
+
+CONFIG_FILE="/etc/zfs-killsnaps.yaml"
+if [ ! -f "$CONFIG_FILE" ]; then
+  cat <<EOF > "$CONFIG_FILE"
+logfile: /var/log/zfs-killsnaps.log
+lockfile: /var/run/zfs-killsnaps.lock
+email_recipient: admin@example.com
+retention_policies:
+  daily: 7
+  weekly: 30
+  monthly: 90
+  autosnap: 14
+EOF
+  chmod 644 "$CONFIG_FILE"
+fi
+
+if command -v systemctl >/dev/null 2>&1; then
+  systemctl daemon-reexec || true
+  systemctl daemon-reload || true
+  systemctl enable zfs-killsnaps.timer || true
+  systemctl start zfs-killsnaps.timer || true
+fi
+
+exit 0

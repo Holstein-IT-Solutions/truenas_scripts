@@ -1,0 +1,10 @@
+#!/bin/sh
+set -e
+
+if command -v systemctl >/dev/null 2>&1; then
+  systemctl stop zfs-killsnaps.timer || true
+  systemctl disable zfs-killsnaps.timer || true
+  systemctl stop zfs-killsnaps.service || true
+fi
+
+exit 0

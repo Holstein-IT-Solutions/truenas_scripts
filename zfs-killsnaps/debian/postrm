@@ -1,0 +1,12 @@
+#!/bin/sh
+set -e
+
+CONFIG_FILE="/etc/zfs-killsnaps.yaml"
+LOG_FILE="/var/log/zfs-killsnaps.log"
+LOCK_FILE="/var/run/zfs-killsnaps.lock"
+
+if [ "$1" = "purge" ]; then
+  rm -f "$CONFIG_FILE" "$LOG_FILE" "$LOCK_FILE"
+fi
+
+exit 0

@@ -1,0 +1,7 @@
+zfs-killsnaps.py usr/bin/zfs-killsnaps
+zfs-killsnaps.yaml etc/zfs-killsnaps.yaml
+README.md usr/share/doc/zfs-killsnaps/README.Debian
+LICENSE usr/share/doc/zfs-killsnaps/copyright
+debian/zfs-killsnaps.service lib/systemd/system/
+debian/zfs-killsnaps.timer lib/systemd/system/
+debian/zfs-killsnaps.8 usr/share/man/man8/

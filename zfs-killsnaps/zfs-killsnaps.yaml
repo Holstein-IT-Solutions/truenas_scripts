@@ -1,0 +1,8 @@
+logfile: /var/log/zfs-killsnaps.log
+lockfile: /var/run/zfs-killsnaps.lock
+email_recipient: admin@example.com
+retention_policies:
+  daily: 7
+  weekly: 30
+  monthly: 90
+  autosnap: 14

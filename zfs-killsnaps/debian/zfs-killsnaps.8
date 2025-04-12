@@ -1,0 +1,50 @@
+.TH ZFS-KILLSNAPS 8 "April 2025" "1.0" "ZFS Snapshot Cleanup Tool"
+
+.SH NAME
+zfs-killsnaps \- safely remove ZFS snapshots based on age and pattern
+
+.SH SYNOPSIS
+.B zfs-killsnaps
+[IOPTIONSR]
+
+.SH DESCRIPTION
+The zfs-killsnaps tool removes old ZFS snapshots matching name patterns and age filters. It supports dry-run, recursive deletion, and is suitable for cron or systemd use.
+
+.SH OPTIONS
+.TP
+B-p, --patternR
+Match snapshot names by pattern (e.g., weekly, daily). Default: weekly.
+.TP
+B-a, --ageR
+Age in days; override policy-based retention.
+.TP
+B-r, --recursiveR
+Enable recursive deletion.
+.TP
+B-n, --dry-runR
+Preview actions without destroying snapshots.
+.TP
+B-z, --poolR
+Restrict actions to a specific ZFS pool.
+.TP
+B-c, --configR
+Path to YAML config file (default: /etc/zfs-killsnaps.yaml)
+
+.SH FILES
+.TP
+I/etc/zfs-killsnaps.yamlR
+YAML configuration file used for retention policies.
+
+.SH EXAMPLES
+.TP
+Dry-run cleanup:
+.B zfs-killsnaps -p weekly -n
+.TP
+Force destroy of daily snapshots older than 10 days:
+.B zfs-killsnaps -p daily -a 10 -r
+
+.SH AUTHOR
+Michael Bielicki
+
+.SH LICENSE
+AGPL-3.0-or-later

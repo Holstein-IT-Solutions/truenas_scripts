@@ -1,0 +1,13 @@
+[Unit]
+Description=ZFS Snapshot Cleanup
+After=network.target zfs.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/zfs-killsnaps -p weekly
+Nice=10
+ProtectSystem=full
+ProtectHome=yes
+PrivateTmp=true
+NoNewPrivileges=true
+
