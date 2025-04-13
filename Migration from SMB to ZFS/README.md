@@ -1,50 +1,47 @@
 # TrueNAS SMB to ZFS Migration Script
 
-This script automates the process of migrating user directories from an SMB share to a ZFS pool on TrueNAS. It streamlines the process by performing essential tasks such as creating ZFS datasets with quotas, transferring data from the SMB share to ZFS using rsync, and configuring NFSv4 ACLs to ensure proper access control per user. Additionally, the script supports a dry-run mode for testing and optionally sends email reports upon completion.
+## English
 
-This solution is tailored for administrators who need to efficiently migrate a large number of users, enforce data quotas, and ensure that proper permissions are set on the new ZFS datasets. The script works best in environments where user directories are stored in SMB shares and need to be moved to a ZFS-based storage system with strict access controls.
+This script migrates user directories from an SMB share to a ZFS pool on TrueNAS, preserving data integrity, access permissions, and applying storage quotas. It is designed for administrators transitioning SMB-based user folders to a modern ZFS filesystem with NFSv4 ACLs, especially in Active Directory (AD) environments.
 
-## Key Features:
+### Features
+- Creates ZFS datasets for each user folder with customizable storage quotas.
+- Copies data securely using `rsync` with progress indication.
+- Converts SMB ACLs (via `smbcacls`) to NFSv4 ACLs for TrueNAS.
+- Supports Active Directory users and groups for accurate permission mapping.
+- Offers a dry-run mode to simulate actions without changes.
+- Skips specified folders (e.g., test or guest accounts).
+- Verifies SMB share mount status before starting.
+- Logs all actions in detail to a file.
+- Optionally sends an email report upon completion.
+- Handles errors (e.g., missing ACLs, non-existent folders) with clear messages.
 
-1. User Directory Migration: Automatically creates ZFS datasets for each user with configurable quotas (e.g., 1G per user).
-1. SMB to ZFS Data Transfer: Efficiently copies user data from the SMB share to ZFS datasets using rsync, ensuring data integrity.
-1. NFSv4 ACL Management: Configures proper NFSv4 ACLs for each user, based on their UID, to ensure correct permissions on the ZFS datasets.
-1. Dry-Run Mode: Simulates the migration process without making any changes to the system. This allows for testing before actually migrating data.
-1. User Exclusion: Supports a configurable list of users to exclude from the migration process (e.g., for system accounts or test users).
-1. Email Reports: Optionally sends a detailed email report with the migration results, which is useful for keeping stakeholders informed.
+### Prerequisites
+- TrueNAS system with a ZFS pool (tested with TrueNAS Scale 24.10.2).
+- SMB share must be mounted before running the script (e.g., `mount -t cifs //192.168.1.1/smbshare /mnt/home -o username=administrator@MYDOMAIN,iocharset=utf8,acl,noperm,cifsacl`).
+- For AD environments: TrueNAS must be configured in Active Directory to resolve users and groups correctly.
 
-## Important Notes:
+### Configuration
+The script is configured via variables at the top of `migration.sh`. Below is a summary:
 
-Usernames and Folder Names Must Match: In the current state of the script, the usernames and the folder names inside the SMB share must match exactly. This is because the script fetches the usernames from the folder names in the SMB share. For example, if you have a user named johndoe on your SMB share, there must be a folder named johndoe in the SMB share. The script will then use this folder name (johndoe) to identify the user and migrate the corresponding data.
+| Variable         | Description                                                                 | Example                     |
+|------------------|-----------------------------------------------------------------------------|-----------------------------|
+| `MAIN_PATH`      | Base path for ZFS mounts (typically `/mnt`).                                | `/mnt`                      |
+| `MAIN_POOL`      | ZFS pool name (run `zpool list` to find it).                                | `tank`                      |
+| `MAIN_DATASET`   | Main dataset name (forms `MAIN_POOL/MAIN_DATASET`).                         | `userfiles`                 |
+| `SMB_MOUNTED_IN` | Local path where SMB share is mounted.                                      | `/mnt/home`                 |
+| `SMB_ACL_ROOT`   | SMB share network path for ACL retrieval.                                   | `//192.168.1.1/smbshare`    |
+| `SMB_AUTH_USER`  | Username for SMB access (format: `user@domain` for AD).                     | `administrator@MYDOMAIN`    |
+| `SMB_AUTH_PASS`  | Password for SMB user (replace `********`).                                 | `********`                  |
+| `QUOTA`          | Storage quota per user dataset (e.g., `1G`, `500M`).                        | `1G`                        |
+| `LOGFILE`        | Path to log file (must be writable).                                        | `./migration.log`           |
+| `MAILTO`         | Email for report (leave empty to disable).                                  | `admin@example.com`         |
+| `AD_DOMAIN`      | AD domain for user/group resolution.                                        | `MYDOMAIN`                  |
+| `SKIP_FOLDERS`   | Comma-separated list of folders to skip (case-sensitive).                   | `test,guest,admin`          |
 
-Configurable NFSv4 ACL String: The NFSv4 ACL string is customizable, allowing administrators to modify permissions as needed. This string determines the level of access granted to users on their respective datasets. The default string is rwxpDdaARWcCos:fd:allow, which provides full access with various options, including read, write, and execute permissions. More information on NFSv4 ACL strings can be found in the NFSv4 ACL documentation.
+**Note**: Replace `SMB_AUTH_PASS` with the actual password and ensure the SMB share is mounted before running.
 
-## Configuration:
-
-At the beginning of the script, you can configure several variables, such as:
-
-1. MAIN_PATH: Base path for ZFS mounts (e.g., /mnt).
-1. MAIN_POOL: Name of the ZFS pool (e.g., tank).
-1. MAIN_DATASET: Main dataset name (e.g., userfiles).
-1. SOURCE_MOUNT: The mounted SMB share location (e.g., /mnt/oldhomes).
-1. QUOTA: User quota for storage (e.g., 1G per user).
-1. LOGFILE: Path to the log file (e.g., ./migration.log).
-1. MAILTO: Optional email address for sending a report upon completion.
-1. SKIP_USERS: A comma-separated list of users to exclude from the migration process.
-1. NFS4_ACL_STRING: The NFSv4 ACL string used to configure permissions for each user on their ZFS dataset. The default value is rwxpDdaARWcCos:fd:allow.
-
-## Usage:
-
-* Configure the script with your desired settings (e.g., paths, quotas, email).
-* Run the script. For a dry-run simulation (no changes made), use the --dry-run flag.
-* Monitor the script output in the terminal and check the log file for detailed progress.
-* Optionally, an email report will be sent if you configure the MAILTO variable.
-
-## Examples
-> ./migrate_smb_to_zfs.sh
-
-For a dry run:
-> ./migrate_smb_to_zfs.sh --dry-run
-
-## License:
-This script is licensed under the GNU Affero General Public License v3.0.
+### Usage
+1. Save the script as `migration.sh` and make it executable:
+   ```bash
+   chmod +x migration.sh
